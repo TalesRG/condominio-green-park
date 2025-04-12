@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BoletoEntity } from '../entity/BoletoEntity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { BoletoDto } from '../dto/boleto.dto';
 import { LoteService } from './lote.service';
 import { LoteEntity } from '../entity/LoteEntity';
 import { FiltrosBoleto } from '../interfaces/FiltrosBoleto';
 import { PdfService } from './pdf.service';
+import { PDFDocument } from 'pdf-lib';
+import { promises as fs } from 'fs';
+import { join } from 'path';
+import pdfParse from 'pdf-parse';
 
 @Injectable()
 export class BoletoService {
@@ -79,5 +83,53 @@ export class BoletoService {
     }
 
     return await query.getMany();
+  }
+
+  async separarBoletosPdf(buffer: Buffer, outputFolder: string) {
+    try {
+      const originalPdf = await PDFDocument.load(buffer);
+      const totalPages = originalPdf.getPageCount();
+
+      await fs.mkdir(outputFolder, { recursive: true });
+
+      const savedFilePaths: string[] = [];
+
+      for (let i = 0; i < totalPages; i++) {
+        const newPdf = await PDFDocument.create();
+
+        const [copiedPage] = await newPdf.copyPages(originalPdf, [i]);
+        newPdf.addPage(copiedPage);
+
+        const newPdfBytes = await newPdf.save();
+        const newPdfBuffer = Buffer.from(newPdfBytes);
+
+        const data = await pdfParse(newPdfBuffer);
+
+        let fileName = data.text.trim().split('\n')[0];
+
+        const boleto = await this.boletoRepository.findOne({
+          where: {
+            nome_sacado: Like(`%${fileName}%`),
+          },
+        });
+        fileName = fileName.replace(/[^a-zA-Z0-9-_ ]/g, '');
+
+        if (!fileName) {
+          fileName = `pagina_${i + 1}`;
+        }
+
+        const outputFilePath = join(
+          outputFolder,
+          `${boleto.id}.${fileName}.pdf`,
+        );
+
+        await fs.writeFile(outputFilePath, newPdfBuffer);
+        savedFilePaths.push(outputFilePath);
+      }
+
+      return savedFilePaths;
+    } catch (error) {
+      throw new Error(`Falha ao ler o PDF: ${error.message}`);
+    }
   }
 }

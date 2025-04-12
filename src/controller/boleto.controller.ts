@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  Body,
   Controller,
   Get,
   Post,
@@ -9,11 +8,11 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { BoletoService } from '../service/boleto.service';
-import { BoletoEntity } from '../entity/BoletoEntity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { CsvService } from '../service/csv.service';
 import { BoletoDto } from '../dto/boleto.dto';
+import { join, basename, extname } from 'path';
 
 @Controller('boletos')
 export class BoletoController {
@@ -22,7 +21,7 @@ export class BoletoController {
     private readonly csvService: CsvService,
   ) {}
 
-  @Post('/criar')
+  @Post('/csv/upload')
   @UseInterceptors(FileInterceptor('file'))
   async criarBoleto(@UploadedFile() file: Express.Multer.File): Promise<any> {
     if (!file) {
@@ -39,6 +38,19 @@ export class BoletoController {
     return this.boletoService.criarBoletos(boletosExtraidos);
   }
 
+  @Post('/pdf/gerar')
+  @UseInterceptors(FileInterceptor('file'))
+  async separarBoletos(@UploadedFile() file: Express.Multer.File) {
+    const fileName = basename(file.originalname, extname(file.originalname));
+    const outputFolder = join('./output', fileName);
+
+    const savedFilePaths = await this.boletoService.separarBoletosPdf(
+      file.buffer,
+      outputFolder,
+    );
+
+    return { arquivos: savedFilePaths };
+  }
   @Get()
   async recuperarBoletosComFiltro(
     @Query('nome') nome?: string,
