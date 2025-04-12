@@ -7,9 +7,10 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { LoteEntity } from './LoteEntity';
+import { BoletoInterface } from '../interfaces/BoletoInterface';
 
 @Entity('boletos')
-export class BoletoEntity {
+export class BoletoEntity implements BoletoInterface {
   @PrimaryGeneratedColumn({ name: 'id' })
   id: number;
 

@@ -2,7 +2,7 @@ import { LoteEntity } from '../entity/LoteEntity';
 
 export interface BoletoInterface {
   id: number;
-  nome: string;
+  nome_sacado: string;
   lote: LoteEntity;
   valor: number;
   linha_digitavel: string;
