@@ -7,7 +7,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { LoteEntity } from './LoteEntity';
-import { BoletoInterface } from '../interfaces/BoletoInterface';
 
 @Entity('boletos')
 export class BoletoEntity {
@@ -23,7 +22,7 @@ export class BoletoEntity {
   @JoinColumn({ name: 'id_lote' })
   lote: LoteEntity;
 
-  @Column({ name: 'valor' })
+  @Column('decimal', { name: 'valor' })
   valor: number;
 
   @Column({ name: 'linha_digitavel' })

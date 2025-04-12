@@ -7,7 +7,7 @@ export class TabelaLotes1744333578241 implements MigrationInterface {
           CREATE TABLE  IF NOT EXISTS portaria.lotes(
               id INT NOT NULL AUTO_INCREMENT,
               nome VARCHAR(100),
-              ativo BOOLEAN,
+              ativo BOOLEAN DEFAULT TRUE,
               criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
               PRIMARY KEY (id)
           );
