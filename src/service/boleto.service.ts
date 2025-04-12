@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BoletoEntity } from '../entity/BoletoEntity';
 import { Like, Repository } from 'typeorm';
@@ -21,8 +21,11 @@ export class BoletoService {
     private readonly pdfService: PdfService,
   ) {}
 
+  private readonly logger = new Logger(BoletoService.name);
+
   async criarBoletos(boletosDto: BoletoDto[]) {
     try {
+      this.logger.log('Iniciando a criação de boletos...');
       const boletosParaSalvar: BoletoEntity[] = [];
 
       for (const boletoDto of boletosDto) {
@@ -39,6 +42,10 @@ export class BoletoService {
         boletosParaSalvar.push(novoBoleto);
       }
 
+      this.logger.log(
+        'Boletos criados com sucesso, salvando no banco de dados...',
+      );
+
       return await this.boletoRepository.save(boletosParaSalvar);
     } catch (error) {
       console.error('Erro ao criar boletos:', error);
@@ -49,6 +56,7 @@ export class BoletoService {
   async recuperarBoletosComFiltro(
     filtros: FiltrosBoleto,
   ): Promise<BoletoEntity[] | { base64: string }> {
+    this.logger.log('Recuperando boletos...');
     const query = this.boletoRepository
       .createQueryBuilder('boleto')
       .leftJoinAndSelect('boleto.lote', 'lote');
@@ -76,12 +84,14 @@ export class BoletoService {
     }
 
     if (filtros.relatorio === 1) {
+      this.logger.log('Iniciando a geração do PDF em base64');
       const boletos: BoletoEntity[] = await query.getMany();
       const pdfBuffer: Buffer = await this.pdfService.gerarPdf(boletos);
       const base64String: string = pdfBuffer.toString('base64');
+      this.logger.log('Gerado PDF em base64');
       return { base64: base64String };
     }
-
+    this.logger.log('Boletos recuperados com sucesso');
     return await query.getMany();
   }
 
