@@ -6,9 +6,15 @@ import { BoletoService } from '../service/boleto.service';
 import { LoteModule } from './lote.module';
 import { CsvService } from '../service/csv.service';
 import { CsvModule } from './csv.module';
+import { PdfModule } from './pdf.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([BoletoEntity]), LoteModule, CsvModule],
+  imports: [
+    TypeOrmModule.forFeature([BoletoEntity]),
+    LoteModule,
+    CsvModule,
+    PdfModule,
+  ],
   controllers: [BoletoController],
   providers: [BoletoService],
 })

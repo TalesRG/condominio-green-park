@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { BoletoDto } from '../dto/boleto.dto';
 import { LoteService } from './lote.service';
 import { LoteEntity } from '../entity/LoteEntity';
+import { FiltrosBoleto } from '../interfaces/FiltrosBoleto';
+import { PdfService } from './pdf.service';
 
 @Injectable()
 export class BoletoService {
@@ -12,9 +14,10 @@ export class BoletoService {
     @InjectRepository(BoletoEntity)
     private readonly boletoRepository: Repository<BoletoEntity>,
     private readonly loteService: LoteService,
+    private readonly pdfService: PdfService,
   ) {}
 
-  async criarBoletos(boletosDto: BoletoDto[]): Promise<BoletoEntity[]> {
+  async criarBoletos(boletosDto: BoletoDto[]) {
     try {
       const boletosParaSalvar: BoletoEntity[] = [];
 
@@ -39,16 +42,12 @@ export class BoletoService {
     }
   }
 
-  async recuperarTodosBoletos(): Promise<BoletoEntity[]> {
-    return await this.boletoRepository.find({
-      relations: ['lote'],
-    });
-  }
-
   async recuperarBoletosComFiltro(
     filtros: FiltrosBoleto,
-  ): Promise<BoletoEntity[]> {
-    const query = this.boletoRepository.createQueryBuilder('boleto');
+  ): Promise<BoletoEntity[] | { base64: string }> {
+    const query = this.boletoRepository
+      .createQueryBuilder('boleto')
+      .leftJoinAndSelect('boleto.lote', 'lote');
 
     if (filtros.nome) {
       query.andWhere('boleto.nome_sacado LIKE :nome', {
@@ -70,6 +69,13 @@ export class BoletoService {
 
     if (filtros.idLote !== undefined) {
       query.andWhere('boleto.lote = :idLote', { idLote: filtros.idLote });
+    }
+
+    if (filtros.relatorio === 1) {
+      const boletos: BoletoEntity[] = await query.getMany();
+      const pdfBuffer: Buffer = await this.pdfService.gerarPdf(boletos);
+      const base64String: string = pdfBuffer.toString('base64');
+      return { base64: base64String };
     }
 
     return await query.getMany();

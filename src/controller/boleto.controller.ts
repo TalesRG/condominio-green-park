@@ -41,20 +41,20 @@ export class BoletoController {
 
   @Get()
   async recuperarBoletosComFiltro(
-    @Query('nome') nome: string,
-    @Query('valor_inicial') valorInicial: number,
-    @Query('valor_final') valorFinal: number,
-    @Query('id_lote') idLote: number,
+    @Query('nome') nome?: string,
+    @Query('valor_inicial') valorInicial?: string,
+    @Query('valor_final') valorFinal?: string,
+    @Query('id_lote') idLote?: string,
+    @Query('relatorio') relatorio?: string,
   ) {
-    if (nome || valorInicial || valorFinal || idLote) {
-      const filtros = {
-        nome,
-        valorInicial,
-        valorFinal,
-        idLote,
-      };
-      return this.boletoService.recuperarBoletosComFiltro(filtros);
-    }
-    return this.boletoService.recuperarTodosBoletos();
+    const filtros = {
+      nome,
+      valorInicial: valorInicial ? parseFloat(valorInicial) : undefined,
+      valorFinal: valorFinal ? parseFloat(valorFinal) : undefined,
+      idLote: idLote ? parseInt(idLote, 10) : undefined,
+      relatorio: relatorio ? parseInt(relatorio, 10) : undefined,
+    };
+
+    return this.boletoService.recuperarBoletosComFiltro(filtros);
   }
 }
