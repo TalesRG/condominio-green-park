@@ -11,7 +11,7 @@ export class BoletoService {
   constructor(
     @InjectRepository(BoletoEntity)
     private readonly boletoRepository: Repository<BoletoEntity>,
-    private readonly loteService: LoteService, // Importando o LoteService
+    private readonly loteService: LoteService,
   ) {}
 
   async criarBoletos(boletosDto: BoletoDto[]): Promise<BoletoEntity[]> {
