@@ -38,4 +38,40 @@ export class BoletoService {
       throw new Error('Erro ao criar boletos');
     }
   }
+
+  async recuperarTodosBoletos(): Promise<BoletoEntity[]> {
+    return await this.boletoRepository.find({
+      relations: ['lote'],
+    });
+  }
+
+  async recuperarBoletosComFiltro(
+    filtros: FiltrosBoleto,
+  ): Promise<BoletoEntity[]> {
+    const query = this.boletoRepository.createQueryBuilder('boleto');
+
+    if (filtros.nome) {
+      query.andWhere('boleto.nome_sacado LIKE :nome', {
+        nome: `%${filtros.nome}%`,
+      });
+    }
+
+    if (filtros.valorInicial !== undefined) {
+      query.andWhere('boleto.valor >= :valorInicial', {
+        valorInicial: filtros.valorInicial,
+      });
+    }
+
+    if (filtros.valorFinal !== undefined) {
+      query.andWhere('boleto.valor <= :valorFinal', {
+        valorFinal: filtros.valorFinal,
+      });
+    }
+
+    if (filtros.idLote !== undefined) {
+      query.andWhere('boleto.lote = :idLote', { idLote: filtros.idLote });
+    }
+
+    return await query.getMany();
+  }
 }
