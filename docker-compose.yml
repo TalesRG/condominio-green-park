@@ -1,0 +1,10 @@
+version: '3.7'
+services:
+  green-park:
+    container_name: green-park-db
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: portaria
