@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { BoletoModule } from './module/boleto.module';
-import process from 'node:process';
+import * as process from 'node:process';
 
 @Module({
   imports: [
